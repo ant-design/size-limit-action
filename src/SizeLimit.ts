@@ -43,9 +43,10 @@ class SizeLimit {
   private formatSizeChange(base: number = 0, current: number = 0): string {
     const value = current - base;
     if (value > 0) {
-      return `+${this.formatBytes(value)} 🔺`;
-    } else if (value < 0) {
-      return `-${this.formatBytes(value)} 🔽`;
+      return `**+${this.formatBytes(value)}** 🔺`;
+    }
+    if (value < 0) {
+      return `**-${this.formatBytes(value)}** 🔽`;
     }
     return '';
   }
@@ -71,6 +72,9 @@ class SizeLimit {
   }
 
   private formatLine(value: string, change: string) {
+    if (!change) {
+      return value;
+    }
     return `${value} (${change})`;
   }
 

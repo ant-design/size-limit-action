@@ -10632,10 +10632,10 @@ class SizeLimit {
     formatSizeChange(base = 0, current = 0) {
         const value = current - base;
         if (value > 0) {
-            return `+${this.formatBytes(value)} 🔺`;
+            return `**+${this.formatBytes(value)}** 🔺`;
         }
-        else if (value < 0) {
-            return `-${this.formatBytes(value)} 🔽`;
+        if (value < 0) {
+            return `**-${this.formatBytes(value)}** 🔽`;
         }
         return '';
     }
@@ -10654,6 +10654,9 @@ class SizeLimit {
         return `${formatted}% 🔽`;
     }
     formatLine(value, change) {
+        if (!change) {
+            return value;
+        }
         return `${value} (${change})`;
     }
     formatSizeResult(name, base, current) {
