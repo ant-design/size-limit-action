@@ -10629,6 +10629,16 @@ class SizeLimit {
         }
         return `${Math.ceil(seconds * 1000)} ms`;
     }
+    formatSizeChange(base = 0, current = 0) {
+        const value = current - base;
+        if (value > 0) {
+            return `+${this.formatBytes(value)} 🔺`;
+        }
+        else if (value < 0) {
+            return `-${this.formatBytes(value)} 🔽`;
+        }
+        return '';
+    }
     formatChange(base = 0, current = 0) {
         if (base === 0) {
             return "+100% 🔺";
@@ -10649,13 +10659,13 @@ class SizeLimit {
     formatSizeResult(name, base, current) {
         return [
             name,
-            this.formatLine(this.formatBytes(current.size), this.formatChange(base.size, current.size))
+            this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size))
         ];
     }
     formatTimeResult(name, base, current) {
         return [
             name,
-            this.formatLine(this.formatBytes(current.size), this.formatChange(base.size, current.size)),
+            this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size)),
             this.formatLine(this.formatTime(current.loading), this.formatChange(base.loading, current.loading)),
             this.formatLine(this.formatTime(current.running), this.formatChange(base.running, current.running)),
             this.formatTime(current.total)

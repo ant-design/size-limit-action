@@ -1,6 +1,6 @@
 {
   "name": "size-limit-action",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "description": "size-limit action",
   "main": "dist/index.js",
@@ -45,5 +45,6 @@
     "size-limit": "^4.3.1",
     "ts-jest": "^24.2.0",
     "typescript": "^3.6.4"
-  }
+  },
+  "repository": "git@github.com:ant-design/size-limit-action.git"
 }
