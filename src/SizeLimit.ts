@@ -46,7 +46,7 @@ class SizeLimit {
       return `+${this.formatBytes(value)} 🔺`;
     }
     if (value < 0) {
-      return `-${this.formatBytes(value)} 🔽`;
+      return `${this.formatBytes(value)} 🔽`;
     }
     return '';
   }
@@ -84,7 +84,7 @@ class SizeLimit {
     current: IResult
   ): Array<string> {
     return [
-      name,
+      `\`${name}\``,
       this.formatLine(
         this.formatBytes(current.size),
         this.formatSizeChange(base.size, current.size)
@@ -98,7 +98,7 @@ class SizeLimit {
     current: IResult
   ): Array<string> {
     return [
-      name,
+      `\`${name}\``,
       this.formatLine(
         this.formatBytes(current.size),
         this.formatSizeChange(base.size, current.size)

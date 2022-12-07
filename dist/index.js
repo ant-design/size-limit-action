@@ -10635,7 +10635,7 @@ class SizeLimit {
             return `+${this.formatBytes(value)} 🔺`;
         }
         if (value < 0) {
-            return `-${this.formatBytes(value)} 🔽`;
+            return `${this.formatBytes(value)} 🔽`;
         }
         return '';
     }
@@ -10661,13 +10661,13 @@ class SizeLimit {
     }
     formatSizeResult(name, base, current) {
         return [
-            name,
+            `\`${name}\``,
             this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size))
         ];
     }
     formatTimeResult(name, base, current) {
         return [
-            name,
+            `\`${name}\``,
             this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size)),
             this.formatLine(this.formatTime(current.loading), this.formatChange(base.loading, current.loading)),
             this.formatLine(this.formatTime(current.running), this.formatChange(base.running, current.running)),
