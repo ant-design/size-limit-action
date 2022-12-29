@@ -3864,6 +3864,7 @@ function run() {
                 SIZE_LIMIT_HEADING,
                 markdown_table_1.default(limit.formatResults(base, current))
             ].join("\r\n");
+            console.log(body);
             const sizeLimitComment = yield fetchPreviousComment(octokit, repo, pr);
             if (!sizeLimitComment) {
                 try {

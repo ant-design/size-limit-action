@@ -91,6 +91,8 @@ async function run() {
       table(limit.formatResults(base, current))
     ].join("\r\n");
 
+    console.log(body);
+
     const sizeLimitComment = await fetchPreviousComment(octokit, repo, pr);
 
     if (!sizeLimitComment) {
