@@ -522,353 +522,12 @@ class OidcClient {
     static getCall(id_token_url) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-<<<<<<< HEAD
-            throw new Error('not implemented');
-        });
-    }
-}
-exports.BasicCredentialHandler = BasicCredentialHandler;
-class BearerCredentialHandler {
-    constructor(token) {
-        this.token = token;
-    }
-    // currently implements pre-authorization
-    // TODO: support preAuth = false where it hooks on 401
-    prepareRequest(options) {
-        if (!options.headers) {
-            throw Error('The request has no headers');
-        }
-        options.headers['Authorization'] = `Bearer ${this.token}`;
-    }
-    // This handler cannot handle 401
-    canHandleAuthentication() {
-        return false;
-    }
-    handleAuthentication() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new Error('not implemented');
-        });
-    }
-}
-exports.BearerCredentialHandler = BearerCredentialHandler;
-class PersonalAccessTokenCredentialHandler {
-    constructor(token) {
-        this.token = token;
-    }
-    // currently implements pre-authorization
-    // TODO: support preAuth = false where it hooks on 401
-    prepareRequest(options) {
-        if (!options.headers) {
-            throw Error('The request has no headers');
-        }
-        options.headers['Authorization'] = `Basic ${Buffer.from(`PAT:${this.token}`).toString('base64')}`;
-    }
-    // This handler cannot handle 401
-    canHandleAuthentication() {
-        return false;
-    }
-    handleAuthentication() {
-        return __awaiter(this, void 0, void 0, function* () {
-            throw new Error('not implemented');
-        });
-    }
-}
-exports.PersonalAccessTokenCredentialHandler = PersonalAccessTokenCredentialHandler;
-//# sourceMappingURL=auth.js.map
-
-/***/ }),
-
-/***/ 558:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-module.exports = hasPreviousPage
-
-const deprecate = __webpack_require__(370)
-const getPageLinks = __webpack_require__(577)
-
-function hasPreviousPage (link) {
-  deprecate(`octokit.hasPreviousPage() – You can use octokit.paginate or async iterators instead: https://github.com/octokit/rest.js#pagination.`)
-  return getPageLinks(link).prev
-}
-
-
-/***/ }),
-
-/***/ 563:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-module.exports = getPreviousPage
-
-const getPage = __webpack_require__(265)
-
-function getPreviousPage (octokit, link, headers) {
-  return getPage(octokit, link, 'prev', headers)
-}
-
-
-/***/ }),
-
-/***/ 568:
-/***/ (function(module, __unusedexports, __webpack_require__) {
-
-"use strict";
-
-
-const path = __webpack_require__(622);
-const niceTry = __webpack_require__(948);
-const resolveCommand = __webpack_require__(489);
-const escape = __webpack_require__(462);
-const readShebang = __webpack_require__(389);
-const semver = __webpack_require__(48);
-
-const isWin = process.platform === 'win32';
-const isExecutableRegExp = /\.(?:com|exe)$/i;
-const isCmdShimRegExp = /node_modules[\\/].bin[\\/][^\\/]+\.cmd$/i;
-
-// `options.shell` is supported in Node ^4.8.0, ^5.7.0 and >= 6.0.0
-const supportsShellOption = niceTry(() => semver.satisfies(process.version, '^4.8.0 || ^5.7.0 || >= 6.0.0', true)) || false;
-
-function detectShebang(parsed) {
-    parsed.file = resolveCommand(parsed);
-
-    const shebang = parsed.file && readShebang(parsed.file);
-
-    if (shebang) {
-        parsed.args.unshift(parsed.file);
-        parsed.command = shebang;
-
-        return resolveCommand(parsed);
-    }
-
-    return parsed.file;
-}
-
-function parseNonShell(parsed) {
-    if (!isWin) {
-        return parsed;
-    }
-
-    // Detect & add support for shebangs
-    const commandFile = detectShebang(parsed);
-
-    // We don't need a shell if the command filename is an executable
-    const needsShell = !isExecutableRegExp.test(commandFile);
-
-    // If a shell is required, use cmd.exe and take care of escaping everything correctly
-    // Note that `forceShell` is an hidden option used only in tests
-    if (parsed.options.forceShell || needsShell) {
-        // Need to double escape meta chars if the command is a cmd-shim located in `node_modules/.bin/`
-        // The cmd-shim simply calls execute the package bin file with NodeJS, proxying any argument
-        // Because the escape of metachars with ^ gets interpreted when the cmd.exe is first called,
-        // we need to double escape them
-        const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-
-        // Normalize posix paths into OS compatible paths (e.g.: foo/bar -> foo\bar)
-        // This is necessary otherwise it will always fail with ENOENT in those cases
-        parsed.command = path.normalize(parsed.command);
-
-        // Escape command & arguments
-        parsed.command = escape.command(parsed.command);
-        parsed.args = parsed.args.map((arg) => escape.argument(arg, needsDoubleEscapeMetaChars));
-
-        const shellCommand = [parsed.command].concat(parsed.args).join(' ');
-
-        parsed.args = ['/d', '/s', '/c', `"${shellCommand}"`];
-        parsed.command = process.env.comspec || 'cmd.exe';
-        parsed.options.windowsVerbatimArguments = true; // Tell node's spawn that the arguments are already escaped
-    }
-
-    return parsed;
-}
-
-function parseShell(parsed) {
-    // If node supports the shell option, there's no need to mimic its behavior
-    if (supportsShellOption) {
-        return parsed;
-    }
-
-    // Mimic node shell option
-    // See https://github.com/nodejs/node/blob/b9f6a2dc059a1062776133f3d4fd848c4da7d150/lib/child_process.js#L335
-    const shellCommand = [parsed.command].concat(parsed.args).join(' ');
-
-    if (isWin) {
-        parsed.command = typeof parsed.options.shell === 'string' ? parsed.options.shell : process.env.comspec || 'cmd.exe';
-        parsed.args = ['/d', '/s', '/c', `"${shellCommand}"`];
-        parsed.options.windowsVerbatimArguments = true; // Tell node's spawn that the arguments are already escaped
-    } else {
-        if (typeof parsed.options.shell === 'string') {
-            parsed.command = parsed.options.shell;
-        } else if (process.platform === 'android') {
-            parsed.command = '/system/bin/sh';
-        } else {
-            parsed.command = '/bin/sh';
-        }
-
-        parsed.args = ['-c', shellCommand];
-    }
-
-    return parsed;
-}
-
-function parse(command, args, options) {
-    // Normalize arguments, similar to nodejs
-    if (args && !Array.isArray(args)) {
-        options = args;
-        args = null;
-    }
-
-    args = args ? args.slice(0) : []; // Clone array to avoid changing the original
-    options = Object.assign({}, options); // Clone object to avoid changing the original
-
-    // Build our parsed object
-    const parsed = {
-        command,
-        args,
-        options,
-        file: undefined,
-        original: {
-            command,
-            args,
-        },
-    };
-
-    // Delegate further parsing to shell or non-shell
-    return options.shell ? parseShell(parsed) : parseNonShell(parsed);
-}
-
-module.exports = parse;
-
-
-/***/ }),
-
-/***/ 577:
-/***/ (function(module) {
-
-module.exports = getPageLinks
-
-function getPageLinks (link) {
-  link = link.link || link.headers.link || ''
-
-  const links = {}
-
-  // link format:
-  // '<https://api.github.com/users/aseemk/followers?page=2>; rel="next", <https://api.github.com/users/aseemk/followers?page=2>; rel="last"'
-  link.replace(/<([^>]*)>;\s*rel="([\w]*)"/g, (m, uri, type) => {
-    links[type] = uri
-  })
-
-  return links
-}
-
-
-/***/ }),
-
-/***/ 605:
-/***/ (function(module) {
-
-module.exports = require("http");
-
-/***/ }),
-
-/***/ 614:
-/***/ (function(module) {
-
-module.exports = require("events");
-
-/***/ }),
-
-/***/ 617:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-// @ts-ignore
-const bytes_1 = __importDefault(__webpack_require__(63));
-const EmptyResult = {
-    name: "-",
-    size: 0,
-    running: 0,
-    loading: 0,
-    total: 0
-};
-class SizeLimit {
-    formatBytes(size) {
-        return bytes_1.default.format(size, { unitSeparator: " " });
-    }
-    formatTime(seconds) {
-        if (seconds >= 1) {
-            return `${Math.ceil(seconds * 10) / 10} s`;
-        }
-        return `${Math.ceil(seconds * 1000)} ms`;
-    }
-    formatSizeChange(base = 0, current = 0) {
-        const value = current - base;
-        if (value > 0) {
-            return `+${this.formatBytes(value)} 🔺`;
-        }
-        if (value < 0) {
-            return `${this.formatBytes(value)} 🔽`;
-        }
-        return '';
-    }
-    formatChange(base = 0, current = 0) {
-        if (base === 0) {
-            return "+100% 🔺";
-        }
-        const value = ((current - base) / base) * 100;
-        const formatted = (Math.sign(value) * Math.ceil(Math.abs(value) * 100)) / 100;
-        if (value > 0) {
-            return `+${formatted}% 🔺`;
-        }
-        if (value === 0) {
-            return `${formatted}%`;
-        }
-        return `${formatted}% 🔽`;
-    }
-    formatLine(value, change) {
-        if (!change) {
-            return value;
-        }
-        return `${value} (${change})`;
-    }
-    formatSizeResult(name, base, current) {
-        return [
-            `\`${name}\``,
-            this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size))
-        ];
-    }
-    formatTimeResult(name, base, current) {
-        return [
-            `\`${name}\``,
-            this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size)),
-            this.formatLine(this.formatTime(current.loading), this.formatChange(base.loading, current.loading)),
-            this.formatLine(this.formatTime(current.running), this.formatChange(base.running, current.running)),
-            this.formatTime(current.total)
-        ];
-    }
-    parseResults(output) {
-        const results = JSON.parse(output);
-        return results.reduce((current, result) => {
-            let time = {};
-            if (result.loading !== undefined && result.running !== undefined) {
-                const loading = +result.loading;
-                const running = +result.running;
-                time = {
-                    running,
-                    loading,
-                    total: loading + running
-                };
-=======
             const httpclient = OidcClient.createHttpClient();
             const res = yield httpclient
                 .getJson(id_token_url)
                 .catch(error => {
-                throw new Error(`Failed to get ID Token. \n
-        Error Code : ${error.statusCode}\n
+                throw new Error(`Failed to get ID Token. \n 
+        Error Code : ${error.statusCode}\n 
         Error Message: ${error.result.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
@@ -894,7 +553,6 @@ class SizeLimit {
             }
             catch (error) {
                 throw new Error(`Error message: ${error.message}`);
->>>>>>> 94bc357df29c36c8f8d50ea497c3e225c3c95d1d
             }
         });
     }
@@ -31071,6 +30729,16 @@ class SizeLimit {
         }
         return `${Math.ceil(seconds * 1000)} ms`;
     }
+    formatSizeChange(base = 0, current = 0) {
+        const value = current - base;
+        if (value > 0) {
+            return `+${this.formatBytes(value)} 🔺`;
+        }
+        if (value < 0) {
+            return `${this.formatBytes(value)} 🔽`;
+        }
+        return '';
+    }
     formatChange(base = 0, current = 0) {
         if (base === 0) {
             return "+100% 🔺";
@@ -31086,18 +30754,21 @@ class SizeLimit {
         return `${formatted}% 🔽`;
     }
     formatLine(value, change) {
+        if (!change) {
+            return value;
+        }
         return `${value} (${change})`;
     }
     formatSizeResult(name, base, current) {
         return [
-            name,
-            this.formatLine(this.formatBytes(current.size), this.formatChange(base.size, current.size))
+            `\`${name}\``,
+            this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size))
         ];
     }
     formatTimeResult(name, base, current) {
         return [
-            name,
-            this.formatLine(this.formatBytes(current.size), this.formatChange(base.size, current.size)),
+            `\`${name}\``,
+            this.formatLine(this.formatBytes(current.size), this.formatSizeChange(base.size, current.size)),
             this.formatLine(this.formatTime(current.loading), this.formatChange(base.loading, current.loading)),
             this.formatLine(this.formatTime(current.running), this.formatChange(base.running, current.running)),
             this.formatTime(current.total)
@@ -31268,7 +30939,7 @@ const SIZE_LIMIT_HEADING = `## size-limit report 📦 `;
 function fetchPreviousComment(octokit, repo, pr) {
     return __awaiter(this, void 0, void 0, function* () {
         // TODO: replace with octokit.issues.listComments when upgraded to v17
-        const commentList = yield octokit.paginate("GET /repos/:owner/:repo/issues/:issue_number/comments", Object.assign(Object.assign({}, repo), {
+        const commentList = yield octokit.paginate("GET /repos/:owner/:repo/issues/:issue_number/comments", Object.assign(Object.assign({}, repo), { 
             // eslint-disable-next-line camelcase
             issue_number: pr.number }));
         const sizeLimitComment = commentList.find(comment => comment.body.startsWith(SIZE_LIMIT_HEADING));
@@ -31310,10 +30981,11 @@ function run() {
                 SIZE_LIMIT_HEADING,
                 markdown_table_1.default(limit.formatResults(base, current))
             ].join("\r\n");
+            console.log(body);
             const sizeLimitComment = yield fetchPreviousComment(octokit, repo, pr);
             if (!sizeLimitComment) {
                 try {
-                    yield octokit.issues.createComment(Object.assign(Object.assign({}, repo), {
+                    yield octokit.issues.createComment(Object.assign(Object.assign({}, repo), { 
                         // eslint-disable-next-line camelcase
                         issue_number: pr.number, body }));
                 }
@@ -31323,7 +30995,7 @@ function run() {
             }
             else {
                 try {
-                    yield octokit.issues.updateComment(Object.assign(Object.assign({}, repo), {
+                    yield octokit.issues.updateComment(Object.assign(Object.assign({}, repo), { 
                         // eslint-disable-next-line camelcase
                         comment_id: sizeLimitComment.id, body }));
                 }
@@ -31517,7 +31189,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __nccwpck_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -31531,7 +31203,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
 /******/ 		var threw = true;
 /******/ 		try {
@@ -31540,23 +31212,23 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		} finally {
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
-/******/
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat */
-/******/
+/******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
-/******/
+/******/ 	
 /************************************************************************/
-/******/
+/******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
 /******/ 	var __webpack_exports__ = __nccwpck_require__(399);
 /******/ 	module.exports = __webpack_exports__;
-/******/
+/******/ 	
 /******/ })()
 ;
